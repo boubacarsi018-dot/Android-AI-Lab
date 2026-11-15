@@ -1,0 +1,46 @@
+
+name: KernelSU Module Builder
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download project
+        uses: actions/checkout@v4
+
+      - name: Check module
+        run: |
+          test -f kernelsu-module/module.prop
+          test -s kernelsu-module/module.prop
+
+      - name: Validate module
+        run: |
+          grep -q '^id=' kernelsu-module/module.prop
+          grep -q '^name=' kernelsu-module/module.prop
+          grep -q '^version=' kernelsu-module/module.prop
+          grep -q '^versionCode=' kernelsu-module/module.prop
+          grep -q '^author=' kernelsu-module/module.prop
+          grep -q '^description=' kernelsu-module/module.prop
+
+      - name: Package ZIP
+        run: |
+          cd kernelsu-module
+          zip -r "$GITHUB_WORKSPACE/KernelSU-Module.zip" . \
+            -x ".git/*"
+
+      - name: Save ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: KernelSU-Module
+          path: KernelSU-Module.zip
+          retention-days: 7
